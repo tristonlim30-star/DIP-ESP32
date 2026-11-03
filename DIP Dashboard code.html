@@ -1167,7 +1167,7 @@
       })
       .catch(err => console.error("Cloud push failed:", err));
 
-      // 2. Push to Google Sheets (New Logic)
+      // 2. Fetch from Google Sheets (New Logic)
       fetch(GOOGLE_SHEET_WEB_APP_URL, {
         method: 'POST',
         // 'no-cors' is often required for simple Apps Script web apps to avoid CORS preflight issues
