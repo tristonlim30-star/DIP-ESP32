@@ -1,7 +1,3 @@
-
-
-
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <BLEDevice.h>
