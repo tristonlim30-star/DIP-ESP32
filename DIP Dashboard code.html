@@ -101,16 +101,6 @@
 
       <!-- Center / Right Top Controls -->
       <div class="flex items-center space-x-3">
-        <!-- Ingestion Mode Selector -->
-        <div class="flex items-center bg-slate-800/90 p-1 rounded-lg border border-slate-700">
-          <button id="btnModeLive" onclick="setIngestMode('live')" class="px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-400 hover:text-slate-200">
-            ESP32 Mode
-          </button>
-          <button id="btnModeSim" onclick="setIngestMode('sim')" class="px-2.5 py-1 text-xs font-medium rounded-md transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            Active Feed
-          </button>
-        </div>
-
         <!-- 15s Countdown Ring & Connection State Indicator -->
         <div class="flex items-center space-x-2.5 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs">
           <!-- Countdown SVG Ring -->
@@ -132,11 +122,6 @@
         <button id="btnOpenThresholdsModal" onclick="openModal('thresholdModal')" type="button" class="cursor-pointer flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-xs text-slate-200 font-medium transition-all shadow-sm">
           <i data-lucide="sliders" class="w-3.5 h-3.5 text-amber-400"></i>
           <span class="hidden sm:inline">Calibrate Thresholds</span>
-        </button>
-
-        <!-- Gateway Config Trigger -->
-        <button onclick="openModal('gatewaySettingsModal')" type="button" class="cursor-pointer p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 transition-all" title="Gateway Settings">
-          <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
       </div>
 
@@ -405,105 +390,40 @@
       </div>
     </div>
 
-    <!-- ==================== BENCHTOP PERTURBATION TESTING TOOLBAR ==================== -->
-    <div id="benchtopControlsPanel" class="bg-slate-850/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-        <div>
-          <div class="flex items-center space-x-2">
-            <i data-lucide="flask-conical" class="w-4 h-4 text-amber-400"></i>
-            <h4 class="text-sm font-bold text-slate-200">Benchtop Perturbation & Field Testing Controls</h4>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">Manually inject optical transients or thermal fluctuations to validate cross-profile logic.</p>
+    <!-- ==================== ROLLING PACKET LOG (COLLAPSIBLE) ==================== -->
+    <details class="group bg-slate-850/80 border border-slate-800 rounded-2xl p-5 shadow-lg transition-all" open>
+      <summary class="flex items-center justify-between cursor-pointer list-none select-none">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
+          <h4 class="text-sm font-bold text-slate-200">Live 15s Gateway Packet Audit Log</h4>
+          <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">(Appends each 15s tick)</span>
         </div>
-        <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 w-fit">
-          Hardware Simulation Ready
-        </span>
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] font-mono text-slate-400 group-open:hidden">Click to Expand</span>
+          <span class="text-[11px] font-mono text-slate-400 hidden group-open:inline">Click to Collapse</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 group-open:rotate-180"></i>
+        </div>
+      </summary>
+
+      <div class="mt-3 pt-3 border-t border-slate-800 overflow-x-auto">
+        <table class="w-full text-left font-mono text-[11px]">
+          <thead>
+            <tr class="text-slate-400 border-b border-slate-800">
+              <th class="py-1.5 px-2">Timestamp</th>
+              <th class="py-1.5 px-2">Node</th>
+              <th class="py-1.5 px-2">Illuminance</th>
+              <th class="py-1.5 px-2">Temperature</th>
+              <th class="py-1.5 px-2">Battery Rail</th>
+              <th class="py-1.5 px-2">RSSI</th>
+              <th class="py-1.5 px-2">Event Flag</th>
+            </tr>
+          </thead>
+          <tbody id="packetLogBody" class="divide-y divide-slate-800/60 text-slate-300">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
       </div>
-
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Manual Lux Slider -->
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-medium">Inject Illuminance:</span>
-            <span id="sliderLuxValDisplay" class="font-mono text-amber-400 font-bold">0.03 lx</span>
-          </div>
-          <input type="range" id="simLuxSlider" min="0.01" max="50000" step="0.1" value="0.03" oninput="manualPerturbLux(this.value)" class="w-full mt-3 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
-          <div class="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
-            <span>0.01 lx (Pitch)</span>
-            <span>350 lx (Office)</span>
-            <span>40k lx (PAR)</span>
-          </div>
-        </div>
-
-        <!-- Manual Temp Slider -->
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-400 font-medium">Inject Temperature:</span>
-            <span id="sliderTempValDisplay" class="font-mono text-sky-400 font-bold">19.2 °C</span>
-          </div>
-          <input type="range" id="simTempSlider" min="0" max="45" step="0.1" value="19.2" oninput="manualPerturbTemp(this.value)" class="w-full mt-3 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-400">
-          <div class="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
-            <span>0°C (Cold Chain)</span>
-            <span>19°C (Sleep)</span>
-            <span>40°C (Hot Spot)</span>
-          </div>
-        </div>
-
-        <!-- Rapid Scenario Stress Buttons -->
-        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
-          <span class="text-xs text-slate-400 font-medium">Rapid Environmental Injectors:</span>
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <button onclick="injectPreset(0.02, 24.2, '🌙 Bedside Darkness')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 border border-slate-700 text-left transition-colors">
-              🌙 Pitch Black (0.02lx)
-            </button>
-            <button onclick="injectPreset(28.5, 24.2, '🚨 Light Leak Event')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-rose-300 border border-rose-500/40 text-left transition-colors">
-              🚨 Light Leak (28.5lx)
-            </button>
-            <button onclick="injectPreset(350, 24.2, '🏢 Office Ambient')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 border border-slate-700 text-left transition-colors">
-              🏢 Day Office (~350lx)
-            </button>
-            <button onclick="injectPreset(0.02, 24.2, '🔥 Thermal Spike')" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-amber-300 border border-amber-500/40 text-left transition-colors">
-              🔥 Warm Spike (26.8°C)
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-<!-- ==================== ROLLING PACKET LOG (COLLAPSIBLE) ==================== -->
-<details class="group bg-slate-850/80 border border-slate-800 rounded-2xl p-5 shadow-lg transition-all" open>
-  <summary class="flex items-center justify-between cursor-pointer list-none select-none">
-    <div class="flex items-center space-x-2">
-      <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
-      <h4 class="text-sm font-bold text-slate-200">Live 15s Gateway Packet Audit Log</h4>
-      <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">(Appends each 15s tick)</span>
-    </div>
-    <div class="flex items-center space-x-2">
-      <span class="text-[11px] font-mono text-slate-400 group-open:hidden">Click to Expand</span>
-      <span class="text-[11px] font-mono text-slate-400 hidden group-open:inline">Click to Collapse</span>
-      <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 group-open:rotate-180"></i>
-    </div>
-  </summary>
-
-  <div class="mt-3 pt-3 border-t border-slate-800 overflow-x-auto">
-    <table class="w-full text-left font-mono text-[11px]">
-      <thead>
-        <tr class="text-slate-400 border-b border-slate-800">
-          <th class="py-1.5 px-2">Timestamp</th>
-          <th class="py-1.5 px-2">Node</th>
-          <th class="py-1.5 px-2">Illuminance</th>
-          <th class="py-1.5 px-2">Temperature</th>
-          <th class="py-1.5 px-2">Battery Rail</th>
-          <th class="py-1.5 px-2">RSSI</th>
-          <th class="py-1.5 px-2">Event Flag</th>
-        </tr>
-      </thead>
-      <tbody id="packetLogBody" class="divide-y divide-slate-800/60 text-slate-300">
-        <!-- Dynamically populated rows -->
-      </tbody>
-    </table>
-  </div>
-</details>
+    </details>
 
   </main>
 
@@ -605,49 +525,6 @@
     </div>
   </div>
 
-  <!-- ==================== GATEWAY CONFIG MODAL ==================== -->
-  <div id="gatewaySettingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4" onclick="handleBackdropClick(event, 'gatewaySettingsModal')">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative" onclick="event.stopPropagation()">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="wifi" class="w-5 h-5 text-sky-400"></i>
-          <h3 class="text-base font-bold text-slate-100">ESP32 Gateway Configuration</h3>
-        </div>
-        <button onclick="closeModal('gatewaySettingsModal')" type="button" class="cursor-pointer text-slate-400 hover:text-slate-200">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="mt-4 space-y-3">
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Gateway Host / IP Address</label>
-          <input type="text" id="cfgGatewayHost" value="http://192.168.4.1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-400 font-mono">
-          <span class="text-[10px] text-slate-400 mt-0.5 block">Default: http://192.168.4.1 or http://sol.local</span>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">REST Polling Interval (s)</label>
-          <input type="number" id="cfgPollInterval" value="15" min="1" max="3600" step="15" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-400 font-mono">
-          <span class="text-[10px] text-slate-400 mt-0.5 block">Configured to SOL 15s sampling cadence (15,000 ms)</span>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">WebSocket Protocol Path</label>
-          <input type="text" id="cfgWsPath" value="ws://192.168.4.1/ws" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-400 font-mono">
-        </div>
-      </div>
-
-      <div class="mt-6 flex justify-end space-x-2 pt-4 border-t border-slate-800">
-        <button onclick="closeModal('gatewaySettingsModal')" type="button" class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors">
-          Cancel
-        </button>
-        <button onclick="saveGatewayConfig()" type="button" class="cursor-pointer px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold text-xs transition-colors shadow-lg shadow-sky-500/20">
-          Save Configuration
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== CORE SCRIPT ARCHITECTURE ==================== -->
   <script>
     // Modal Helpers
@@ -683,7 +560,6 @@
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeModal('thresholdModal');
-        closeModal('gatewaySettingsModal');
       }
     });
 
@@ -748,23 +624,15 @@
     let secondsUntilNextSample = 15;
 
     let currentProfile = 'sleep';
-    let ingestMode = 'sim'; // 'sim' or 'live'
     let telemetryChart = null;
     let pollTimer = null;
     let countdownTimer = null;
     const SAMPLE_CADENCE_S = 2;
 
     // Visible Window Control
-    let activePresetMinutes = 15; // 15 mins default
+    let activePresetMinutes = 15;
     let customMinTime = null;
     let customMaxTime = null;
-
-    // Gateway Config
-    let gatewayConfig = {
-      host: 'http://192.168.4.1',
-      pollInterval: 15000,
-      wsPath: 'ws://192.168.4.1/ws'
-    };
 
     // ==================== CLOUD SYNC CONFIGURATION ====================
     const BIN_ID = '6ad607edac6210605a3ec481';
@@ -772,67 +640,116 @@
     const WRITE_ENDPOINT = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const JSONBIN_MASTER_KEY = '$2a$10$HSGsZH9sK/v514rGulNESe5bLsI.0OQg2vU2QAGQ29j8/l/SGQ80e';
 
-    // Detect if current device is master controller (?admin in URL)
+    // Google Apps Script Web App Endpoint for Google Sheets
+    const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyJtL_OnCTeTQPbLaY_T34EWXQThwi2NlVAb0O0waQi0JyRsuKcMXUgmz5M280Nehtr/exec';
+
     const isMasterController = window.location.search.includes('admin');
 
     // ==================== SYSTEM STATE ====================
-    let currentTelemetry = {
-      lux: 345.0,
-      temp: 24.0,
-      battery: 3.72,
-      rssi: -62,
-      device: 'SOL-01'
-    };
-
-
-    // UNIFIED 15-SECOND DATA STORE: Holds exact 14 days @ 15 s = 80,640 records
+    let currentTelemetry = { lux: 345.0, temp: 24.0, battery: 3.72, rssi: -62, device: 'SOL-01' };
     let dataStore15s = [];
 
-    // Seed 14 days at 15s cadence (09:00 to 18:00 lights on)
+    // Seed mock data just to fill the screen while Google Sheets loads
     function seedUnified15sStore() {
       dataStore15s = [];
-      const totalPoints = 14 * 5760; // 80,640 points
+      const totalPoints = 600; 
       const intervalMs = 15 * 1000;
       const now = Date.now();
 
       for (let i = totalPoints - 1; i >= 0; i--) {
-        const timeMs = now - (i * intervalMs);
-        const dateObj = new Date(timeMs);
-        const hour = dateObj.getHours() + (dateObj.getMinutes() / 60) + (dateObj.getSeconds() / 3600);
-
-        let lux, temp;
-        // Lights ON between 09:00 and 18:00
-        if (hour >= 9.0 && hour < 18.0) {
-          // Daytime office: ~350 lx (+/- 40)
-          lux = 350.0 + (Math.sin(hour * 3) * 35.0) + ((Math.random() - 0.5) * 20.0);
-          // Daytime temperature: ~24.0°C (+/- 1.2°C)
-          temp = 23.5 + Math.sin((hour - 9) * (Math.PI / 9)) * 1.5 + ((Math.random() - 0.5) * 0.3);
-        } else {
-          // Nighttime bedroom: pitch dark < 0.05 lx with micro-noise
-          lux = 0.02 + (Math.random() * 0.02);
-          // Nighttime thermal recovery: 18.8°C - 19.4°C
-          temp = 19.1 + ((Math.random() - 0.5) * 0.4);
-        }
-
-        // Inject 4 historical night-time light leaks over the 14-day history for the demo story
-        if (i === 12000 || i === 31000 || i === 54000 || i === 72000) {
-          lux = 32.5; // Distinct leak spike
-        }
-
         dataStore15s.push({
-          x: timeMs,
-          lux: parseFloat(Math.max(0.01, lux).toFixed(2)),
-          temp: parseFloat(temp.toFixed(2)),
-          battery: parseFloat((3.74 - (i / totalPoints) * 0.08 + (Math.random() * 0.01)).toFixed(2)),
-          rssi: Math.floor(-62 + (Math.random() * 4 - 2))
+          x: now - (i * intervalMs),
+          lux: 0.02,
+          temp: 19.1,
+          battery: 3.72,
+          rssi: -62
         });
       }
-
       document.getElementById('recordCountDisplay').textContent = dataStore15s.length.toLocaleString();
     }
 
+    // ==================== GOOGLE SHEETS HISTORICAL SYNC ====================
+    // This fetches the entire backend archive the moment the tab is reopened
+    async function syncHistoricalFromSheets() {
+      try {
+        const statusLbl = document.getElementById('statusLabel');
+        if (statusLbl) statusLbl.textContent = "Syncing Sheets Archive...";
+        
+        // Fetch the entire spreadsheet JSON from the Apps Script GET endpoint
+        const response = await fetch(GOOGLE_SHEET_WEB_APP_URL);
+        if (!response.ok) throw new Error("Google Sheets network response was not ok");
+        
+        const data = await response.json();
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          // Clear the local mock data
+          dataStore15s = [];
+          
+          data.forEach(row => {
+            // Map the specific column headers from your spreadsheet
+            const timeStr = row["Date/Time"] || row["timestamp"] || row["Date"];
+            const lux = row["Light/Lux"] || row["lux"] || row["Lux"] || 0.01;
+            const temp = row["Temperature/°C"] || row["temp"] || row["Temperature"] || 24.0;
+            const batt = row["Battery"] || row["battery"] || 3.72;
+            const rssi = row["RSSI"] || row["rssi"] || -62;
+            
+            if (timeStr) {
+               let timeMs = new Date(timeStr).getTime();
+               
+               // Fallback parser if Google Sheets returns "DD/MM/YYYY HH:mm"
+               if (isNaN(timeMs) || timeStr.includes('/')) {
+                 const [datePart, timePart] = timeStr.split(' ');
+                 if (datePart && timePart) {
+                    const dParts = datePart.split('/');
+                    const tParts = timePart.split(':');
+                    if (dParts.length === 3) {
+                       timeMs = new Date(`${dParts[2]}-${dParts[1]}-${dParts[0]}T${tParts[0]}:${tParts[1]}:00`).getTime();
+                    }
+                 }
+               }
+
+               if (!isNaN(timeMs)) {
+                 dataStore15s.push({
+                   x: timeMs,
+                   lux: parseFloat(lux),
+                   temp: parseFloat(temp),
+                   battery: parseFloat(batt),
+                   rssi: parseInt(rssi, 10)
+                 });
+               }
+            }
+          });
+          
+          dataStore15s.sort((a, b) => a.x - b.x);
+          
+          // Update the UI state to match the most recent row pulled from Sheets
+          if (dataStore15s.length > 0) {
+            const latest = dataStore15s[dataStore15s.length - 1];
+            currentTelemetry = {
+              lux: latest.lux,
+              temp: latest.temp,
+              battery: latest.battery,
+              rssi: latest.rssi,
+              device: 'SOL-01',
+              timestamp: new Date(latest.x)
+            };
+            updateUI();
+          }
+          
+          const recCount = document.getElementById('recordCountDisplay');
+          if (recCount) recCount.textContent = dataStore15s.length.toLocaleString();
+          
+          refreshChartData();
+          if (statusLbl && !isMasterController) {
+            statusLbl.textContent = `Archive Loaded • Live (${activePollIntervalSec}s)`;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch historical data from Sheets. Falling back to real-time feed.", err);
+      }
+    }
+
     // ==================== DOWNSAMPLING ENGINE ====================
-    // Buckets visible range into ~600 points using MAX lux (preserves leaks) and MEAN temperature
     function downsampleVisibleRange(minTime, maxTime, targetBuckets = 600) {
       const filtered = dataStore15s.filter(d => d.x >= minTime && d.x <= maxTime);
       const count = filtered.length;
@@ -851,9 +768,7 @@
       const samplesPerBucket = Math.round(bucketSize);
       const minutesPerBucket = ((samplesPerBucket * 15) / 60).toFixed(1);
       
-      if (resBadge) {
-        resBadge.textContent = `Each point = ${samplesPerBucket} samples (${minutesPerBucket} min), Max Lux`;
-      }
+      if (resBadge) resBadge.textContent = `Each point = ${samplesPerBucket} samples (${minutesPerBucket} min), Max Lux`;
 
       const downsampledLux = [];
       const downsampledTemp = [];
@@ -872,9 +787,8 @@
           sumTemp += filtered[i].temp;
         }
 
-        const avgTemp = sumTemp / (endIdx - startIdx);
         downsampledLux.push({ x: midTime, y: Math.max(0.01, maxLux) });
-        downsampledTemp.push({ x: midTime, y: parseFloat(avgTemp.toFixed(2)) });
+        downsampledTemp.push({ x: midTime, y: parseFloat((sumTemp / (endIdx - startIdx)).toFixed(2)) });
       }
 
       return { luxData: downsampledLux, tempData: downsampledTemp, isRaw: false };
@@ -902,7 +816,6 @@
               fill: false,
               tension: 0.1,
               pointRadius: 0,
-              pointHoverRadius: 4,
               yAxisID: 'yLux'
             },
             {
@@ -914,7 +827,6 @@
               fill: false,
               tension: 0.2,
               pointRadius: 0,
-              pointHoverRadius: 4,
               yAxisID: 'yTemp'
             }
           ]
@@ -923,117 +835,24 @@
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              titleColor: '#e2e8f0',
-              bodyColor: '#cbd5e1',
-              borderColor: '#334155',
-              borderWidth: 1,
-              padding: 10
-            },
             zoom: {
-              pan: {
-                enabled: true,
-                mode: 'x',
-                onPanComplete: handlePanZoomComplete
-              },
-              zoom: {
-                wheel: { enabled: true },
-                pinch: { enabled: true },
-                drag: {
-                  enabled: true,
-                  backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                  borderColor: '#f59e0b',
-                  borderWidth: 1
-                },
-                mode: 'x',
-                onZoomComplete: handlePanZoomComplete
-              }
+              pan: { enabled: true, mode: 'x', onPanComplete: handlePanZoomComplete },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, drag: { enabled: true }, mode: 'x', onZoomComplete: handlePanZoomComplete }
             },
             annotation: {
               annotations: {
-                // Dashed line at 0.1 lux sleep extinction limit
-                luxExtinctionThreshold: {
-                  type: 'line',
-                  yMin: 0.1,
-                  yMax: 0.1,
-                  yScaleID: 'yLux',
-                  borderColor: 'rgba(245, 158, 11, 0.5)',
-                  borderWidth: 1.5,
-                  borderDash: [4, 4],
-                  label: {
-                    display: true,
-                    content: '0.1 lx Max Sleep Extinction',
-                    position: 'start',
-                    color: '#f59e0b',
-                    font: { size: 9, family: 'monospace' },
-                    backgroundColor: 'rgba(15, 23, 42, 0.8)'
-                  }
-                },
-                // Safe thermal comfort band (18.0 - 20.0 °C)
-                tempComfortZone: {
-                  type: 'box',
-                  yMin: 18.0,
-                  yMax: 20.0,
-                  yScaleID: 'yTemp',
-                  backgroundColor: 'rgba(56, 189, 248, 0.05)',
-                  borderColor: 'rgba(56, 189, 248, 0.2)',
-                  borderWidth: 1,
-                  borderDash: [2, 2]
-                }
+                luxExtinctionThreshold: { type: 'line', yMin: 0.1, yMax: 0.1, yScaleID: 'yLux', borderColor: 'rgba(245, 158, 11, 0.5)', borderWidth: 1.5, borderDash: [4, 4] },
+                tempComfortZone: { type: 'box', yMin: 18.0, yMax: 20.0, yScaleID: 'yTemp', backgroundColor: 'rgba(56, 189, 248, 0.05)', borderColor: 'rgba(56, 189, 248, 0.2)', borderWidth: 1, borderDash: [2, 2] }
               }
             }
           },
           scales: {
-            x: {
-              type: 'time',
-              min: minX,
-              max: maxX,
-              time: {
-                tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
-                displayFormats: {
-                  millisecond: 'HH:mm:ss',
-                  second: 'HH:mm:ss',
-                  minute: 'HH:mm',
-                  hour: 'MM/dd HH:mm',
-                  day: 'MM/dd'
-                }
-              },
-              grid: { color: 'rgba(51, 65, 85, 0.3)' },
-              ticks: { color: '#64748b', font: { size: 10 } }
-            },
-            yLux: {
-              type: 'logarithmic',
-              position: 'left',
-              min: 0.01, // Clamped to 0.01 to allow logarithmic scale across dark baseline & bright ambient
-              title: { display: true, text: 'Illuminance (lux - Log Scale)', color: '#f59e0b', font: { size: 11 } },
-              grid: { color: 'rgba(51, 65, 85, 0.3)' },
-              ticks: {
-                color: '#f59e0b',
-                font: { size: 10 },
-                callback: function(val) {
-                  if (val === 0.01 || val === 0.1 || val === 1 || val === 10 || val === 100 || val === 1000 || val === 10000 || val === 40000) {
-                    return val + ' lx';
-                  }
-                  return null;
-                }
-              }
-            },
-            yTemp: {
-              type: 'linear',
-              position: 'right',
-              min: 15,
-              max: 30,
-              title: { display: true, text: 'Temperature (°C)', color: '#38bdf8', font: { size: 11 } },
-              grid: { drawOnChartArea: false },
-              ticks: { color: '#38bdf8', font: { size: 10 } }
-            }
+            x: { type: 'time', min: minX, max: maxX, ticks: { color: '#64748b', font: { size: 10 } } },
+            yLux: { type: 'logarithmic', position: 'left', min: 0.01, ticks: { color: '#f59e0b', font: { size: 10 } } },
+            yTemp: { type: 'linear', position: 'right', min: 15, max: 30, ticks: { color: '#38bdf8', font: { size: 10 } } }
           }
         }
       });
@@ -1058,15 +877,8 @@
 
       ['15', '60', '1440', '20160'].forEach(w => {
         const btn = document.getElementById(`btnWin${w}`);
-        if (btn) {
-          if (w == mins) {
-            btn.className = "px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-[11px]";
-          } else {
-            btn.className = "px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 font-mono text-[11px]";
-          }
-        }
+        if (btn) btn.className = w == mins ? "px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono text-[11px]" : "px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 font-mono text-[11px]";
       });
-
       refreshChartData();
     }
 
@@ -1083,7 +895,6 @@
       telemetryChart.data.datasets[0].data = sampled.luxData;
       telemetryChart.data.datasets[1].data = sampled.tempData;
 
-      // When zoomed into raw 15s points (<= 2.5 hours visible), show distinct points on chart
       if (sampled.isRaw) {
         telemetryChart.data.datasets[0].pointRadius = 2;
         telemetryChart.data.datasets[1].pointRadius = 2;
@@ -1091,29 +902,18 @@
         telemetryChart.data.datasets[0].pointRadius = 0;
         telemetryChart.data.datasets[1].pointRadius = 0;
       }
-
       telemetryChart.update('none');
     }
 
     // ==================== CADENCE & COUNTDOWN TICKER ====================
-  function start15sCadenceEngine() {
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-
+    function start15sCadenceEngine() {
+      if (countdownTimer) clearInterval(countdownTimer);
       countdownTimer = setInterval(() => {
         secondsUntilNextSample--;
-
         if (secondsUntilNextSample <= 0) {
-          secondsUntilNextSample = activePollIntervalSec; // Resets to the saved interval
+          secondsUntilNextSample = activePollIntervalSec; 
           executeSampleTick();
         }
-
-        const cadenceDisplay = document.getElementById('cadenceTimerDisplay');
-        if (cadenceDisplay) {
-          cadenceDisplay.textContent = `${secondsUntilNextSample}s`;
-        }
-      // Keep ring and "Next sample: Xs" synced every second
         updateCountdownVisuals();
       }, 1000);
     }
@@ -1122,164 +922,79 @@
       const ring = document.getElementById('countdownRing');
       const text = document.getElementById('countdownText');
       
-      if (text) {
-        text.textContent = `Next sample: ${secondsUntilNextSample}s`;
-      }
-      
+      if (text) text.textContent = `Next sample: ${secondsUntilNextSample}s`;
       if (ring) {
-    const total = (typeof activePollIntervalSec !== 'undefined' && activePollIntervalSec) ? activePollIntervalSec : 15;
+        const total = (typeof activePollIntervalSec !== 'undefined' && activePollIntervalSec) ? activePollIntervalSec : 15;
         const progress = Math.max(0, Math.min(1, secondsUntilNextSample / total));
-        // Circumference 62.83
         ring.style.strokeDashoffset = 62.83 * (1 - progress);
       }
     }
 
-
-  // ==================== MASTER PUSH LOGIC ====================
     // ==================== MASTER PUSH LOGIC ====================
-    // Paste your Google Apps Script Web App URL here
-    const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyJtL_OnCTeTQPbLaY_T34EWXQThwi2NlVAb0O0waQi0JyRsuKcMXUgmz5M280Nehtr/exec';
-
     function pushStateToCloud(luxVal, tempVal) {
       if (!isMasterController) return;
+      const payload = { lux: parseFloat(luxVal), temp: parseFloat(tempVal), battery: 3.72, rssi: -62, device: 'SOL-01' };
 
-      const payload = {
-        lux: parseFloat(luxVal),
-        temp: parseFloat(tempVal),
-        battery: 3.72,
-        rssi: -62,
-        device: 'SOL-01'
-      };
-
-      // 1. Push to JSONbin (Existing Logic)
       fetch(WRITE_ENDPOINT, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': JSONBIN_MASTER_KEY
-        },
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_MASTER_KEY },
         body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(() => {
+      }).then(() => {
         const statusLbl = document.getElementById('statusLabel');
         if (statusLbl) statusLbl.textContent = "Broadcasted • Live";
-      })
-      .catch(err => console.error("Cloud push failed:", err));
+      }).catch(err => console.error("JSONBin push failed:", err));
 
-      // 2. Fetch from Google Sheets (New Logic)
       fetch(GOOGLE_SHEET_WEB_APP_URL, {
-        method: 'POST',
-        // 'no-cors' is often required for simple Apps Script web apps to avoid CORS preflight issues
-        mode: 'no-cors', 
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(err => console.error("Google Sheets push failed:", err));
     }
 
-    // ==================== AUDIENCE / PRESENTATION TICK ====================
     function executeSampleTick() {
-      // 1. MASTER CONTROLLER (Presenter Mode)
       if (isMasterController) {
         const statusLbl = document.getElementById('statusLabel');
         if (statusLbl) statusLbl.textContent = "Presenter Mode (Master)";
-        // Must create sample and update the local chart/audit log!
-        synthesizeSimSample();
         return;
       }
 
-      // 2. AUDIENCE / VIEWER MODE (Fetch from JSONbin)
       const endpoint = typeof READ_ENDPOINT !== 'undefined' ? READ_ENDPOINT : `https://api.jsonbin.io/v3/b/6ad607edac6210605a3ec481/latest`;
       const masterKey = typeof JSONBIN_MASTER_KEY !== 'undefined' ? JSONBIN_MASTER_KEY : '$2a$10$HSGsZH9sK/v514rGulNESe5bLsI.0OQg2vU2QAGQ29j8/l/SGQ80e';
 
-      fetch(endpoint, {
-        cache: 'no-store',
-        headers: { 'X-Master-Key': masterKey }
-      })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
+      fetch(endpoint, { cache: 'no-store', headers: { 'X-Master-Key': masterKey } })
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
       .then(data => {
         const record = data.record || data;
         handleNewIncomingSample({
-          lux: parseFloat(record.lux) || 0.03,
-          temp: parseFloat(record.temp) || 25.0,
-          battery: parseFloat(record.battery || 3.72),
-          rssi: parseInt(record.rssi || -62, 10),
-          device: record.device || 'SOL-01'
+          lux: parseFloat(record.lux) || 0.03, temp: parseFloat(record.temp) || 25.0,
+          battery: parseFloat(record.battery || 3.72), rssi: parseInt(record.rssi || -62, 10), device: record.device || 'SOL-01'
         });
         const statusLbl = document.getElementById('statusLabel');
         if (statusLbl) statusLbl.textContent = `Live Telemetry (${activePollIntervalSec}s)`;
       })
       .catch(err => {
-        console.warn("Cloud read failed or offline, falling back to local simulation:", err);
-        synthesizeSimSample();
+        console.warn("Cloud read failed or offline", err);
       });
-    }
-
-    function synthesizeSimSample() {
-      // Ensure numeric types to prevent string concatenation spikes
-      const currentLux = parseFloat(currentTelemetry.lux) || 0.03;
-      const currentTemp = parseFloat(currentTelemetry.temp) || 23.0;
-
-      // Lock strictly to current telemetry / slider position (no random jumps)
-      handleNewIncomingSample({
-        lux: currentLux,
-        temp: currentTemp,
-        battery: 3.72,
-        rssi: -62,
-        device: 'SOL-01'
-      });
-    pushStateToCloud(currentLux, currentTemp);
     }
 
     function handleNewIncomingSample(sample) {
       const nowMs = Date.now();
-
-      // Explicitly enforce float conversion so math never turns into string concatenation
       const cleanLux = parseFloat(sample.lux) || 0.01;
       const cleanTemp = parseFloat(sample.temp) || 20.0;
       const cleanBatt = parseFloat(sample.battery) || 3.72;
       const cleanRssi = parseInt(sample.rssi, 10) || -62;
 
-      currentTelemetry = {
-        lux: cleanLux,
-        temp: cleanTemp,
-        battery: cleanBatt,
-        rssi: cleanRssi,
-        device: sample.device || 'SOL-01',
-        timestamp: new Date(nowMs)
-      };
+      currentTelemetry = { lux: cleanLux, temp: cleanTemp, battery: cleanBatt, rssi: cleanRssi, device: sample.device || 'SOL-01', timestamp: new Date(nowMs) };
+      dataStore15s.push({ x: nowMs, lux: cleanLux, temp: cleanTemp, battery: cleanBatt, rssi: cleanRssi });
 
-      // Append clean record to 15s store
-      dataStore15s.push({
-        x: nowMs,
-        lux: cleanLux,
-        temp: cleanTemp,
-        battery: cleanBatt,
-        rssi: cleanRssi
-      });
-
-      // Trim data older than 14 days by timestamp
-      const maxAgeMs = 14 * 24 * 60 * 60 * 1000;
-      const oldestPermittedTime = nowMs - maxAgeMs;
-      while (dataStore15s.length > 0 && dataStore15s[0].x < oldestPermittedTime) {
-        dataStore15s.shift();
-      }
+      const oldestPermittedTime = nowMs - (14 * 24 * 60 * 60 * 1000);
+      while (dataStore15s.length > 0 && dataStore15s[0].x < oldestPermittedTime) dataStore15s.shift();
 
       const recCount = document.getElementById('recordCountDisplay');
       if (recCount) recCount.textContent = dataStore15s.length.toLocaleString();
 
-      // Trigger visual pulse on live dot
       const dot = document.getElementById('livePulseDot');
       if (dot) {
         dot.classList.add('scale-150', 'bg-amber-400');
-        setTimeout(() => {
-          dot.classList.remove('scale-150', 'bg-amber-400');
-        }, 600);
+        setTimeout(() => dot.classList.remove('scale-150', 'bg-amber-400'), 600);
       }
 
       appendPacketRow(currentTelemetry);
@@ -1309,138 +1024,57 @@
       `;
 
       tbody.insertBefore(tr, tbody.firstChild);
-
-      // Keep audit log to 10 rows
-      while (tbody.children.length > 10) {
-        tbody.removeChild(tbody.lastChild);
-      }
+      while (tbody.children.length > 10) tbody.removeChild(tbody.lastChild);
     }
 
     // ==================== EVALUATOR LOGIC ====================
     function evaluateSleepSentinel(lux, temp, prof) {
       const luxPenalty = Math.max(0, (lux - prof.lux.max) / (prof.lux.alertThreshold || 0.5)) * 50;
-      const tempDiff = Math.abs(temp - prof.temp.ideal);
-      const tempPenalty = (tempDiff / (prof.temp.tolerance || 2.0)) * 50;
-
+      const tempPenalty = (Math.abs(temp - prof.temp.ideal) / (prof.temp.tolerance || 2.0)) * 50;
       const score = Math.max(0, Math.min(100, Math.round(100 - luxPenalty - tempPenalty)));
       
-      let status = "Optimal Sleep Conditions";
-      let severity = "optimal";
-      let msg = "Pitch darkness and optimal circadian thermal envelope maintained.";
+      let status = "Optimal Sleep Conditions", severity = "optimal", msg = "Pitch darkness and optimal circadian thermal envelope maintained.";
 
-      if (lux > 1.0 && temp > prof.temp.max) {
-        status = "Awake / Severe Light Leak & Overheating";
-        severity = "hazard";
-        msg = "Excessive ambient illumination and high temperature disrupting melatonin synthesis.";
-      } else if (lux > prof.lux.max) {
-        status = "Disruptive Light Detected";
-        severity = "warning";
-        msg = `Ambient light (${lux.toFixed(2)} lx) breaches photopic extinction limit (<${prof.lux.max} lx).`;
-      } else if (temp < prof.temp.min || temp > prof.temp.max) {
-        status = "Circadian Thermal Drift";
-        severity = "warning";
-        msg = `Ambient temperature (${temp.toFixed(1)}°C) outside sleep restorative range (${prof.temp.min}–${prof.temp.max}°C).`;
-      }
+      if (lux > 1.0 && temp > prof.temp.max) { status = "Awake / Severe Light Leak & Overheating"; severity = "hazard"; msg = "Excessive ambient illumination and high temperature disrupting melatonin synthesis."; }
+      else if (lux > prof.lux.max) { status = "Disruptive Light Detected"; severity = "warning"; msg = `Ambient light (${lux.toFixed(2)} lx) breaches photopic extinction limit (<${prof.lux.max} lx).`; }
+      else if (temp < prof.temp.min || temp > prof.temp.max) { status = "Circadian Thermal Drift"; severity = "warning"; msg = `Ambient temperature (${temp.toFixed(1)}°C) outside sleep restorative range (${prof.temp.min}–${prof.temp.max}°C).`; }
 
-      return {
-        score,
-        lightScore: Math.max(0, Math.min(100, Math.round(100 - luxPenalty * 2))),
-        tempScore: Math.max(0, Math.min(100, Math.round(100 - tempPenalty * 2))),
-        status,
-        severity,
-        message: msg
-      };
+      return { score, lightScore: Math.max(0, Math.min(100, Math.round(100 - luxPenalty * 2))), tempScore: Math.max(0, Math.min(100, Math.round(100 - tempPenalty * 2))), status, severity, message: msg };
     }
 
     function evaluateGreenhouse(lux, temp, prof) {
       let lightScore = 100;
       if (lux < prof.lux.min) lightScore = Math.max(10, (lux / prof.lux.min) * 100);
       else if (lux > prof.lux.max) lightScore = Math.max(20, 100 - ((lux - prof.lux.max) / prof.lux.max) * 50);
-
-      const tempDiff = Math.abs(temp - prof.temp.ideal);
-      const tempScore = Math.max(0, 100 - (tempDiff / prof.temp.tolerance) * 50);
+      const tempScore = Math.max(0, 100 - (Math.abs(temp - prof.temp.ideal) / prof.temp.tolerance) * 50);
       const score = Math.round((lightScore + tempScore) / 2);
 
-      let status = "Optimal Photosynthetic Zone";
-      let severity = "optimal";
-      let msg = "PAR proxy illuminance and vegetative canopy temperature are well-balanced.";
+      let status = "Optimal Photosynthetic Zone", severity = "optimal", msg = "PAR proxy illuminance and vegetative canopy temperature are well-balanced.";
 
-      if (lux < prof.lux.min) {
-        status = "Insufficient Photoperiod";
-        severity = "warning";
-        msg = `Ambient PAR is below minimum threshold (${prof.lux.min} lx). Auxiliary lighting needed.`;
-      } else if (lux > prof.lux.max) {
-        status = "Solar Radiation Saturation";
-        severity = "warning";
-        msg = `Extreme solar irradiance (> ${prof.lux.max} lx) detected. Deploy shade cloth.`;
-      }
+      if (lux < prof.lux.min) { status = "Insufficient Photoperiod"; severity = "warning"; msg = `Ambient PAR is below minimum threshold (${prof.lux.min} lx). Auxiliary lighting needed.`; }
+      else if (lux > prof.lux.max) { status = "Solar Radiation Saturation"; severity = "warning"; msg = `Extreme solar irradiance (> ${prof.lux.max} lx) detected. Deploy shade cloth.`; }
 
       return { score, lightScore: Math.round(lightScore), tempScore: Math.round(tempScore), status, severity, message: msg };
     }
 
     function evaluatePharma(lux, temp, prof) {
-      let tempScore = 100;
-      let lightScore = 100;
-      let severity = "optimal";
-      let status = "Cold-Chain Integrity Certified";
-      let msg = "Storage container sealed in darkness within refrigerated thermal limits.";
-
-      if (temp < prof.temp.min || temp > prof.temp.max) {
-        severity = "hazard";
-        status = `CRITICAL: Thermal Excursion (${temp > prof.temp.max ? 'High' : 'Low'})`;
-        msg = `Product temperature (${temp.toFixed(1)}°C) breaches regulatory envelope (+${prof.temp.min} to +${prof.temp.max}°C).`;
-        tempScore = 30;
-      }
-      if (lux > prof.lux.max) {
-        lightScore = 0;
-        severity = "hazard";
-        status = "CRITICAL: Container Seal Compromised";
-        msg = `Optical intrusion (${lux.toFixed(2)} lx) indicates storage container has been opened.`;
-      }
+      let tempScore = 100, lightScore = 100, severity = "optimal", status = "Cold-Chain Integrity Certified", msg = "Storage container sealed in darkness within refrigerated thermal limits.";
+      if (temp < prof.temp.min || temp > prof.temp.max) { severity = "hazard"; status = `CRITICAL: Thermal Excursion (${temp > prof.temp.max ? 'High' : 'Low'})`; msg = `Product temperature (${temp.toFixed(1)}°C) breaches regulatory envelope (+${prof.temp.min} to +${prof.temp.max}°C).`; tempScore = 30; }
+      if (lux > prof.lux.max) { lightScore = 0; severity = "hazard"; status = "CRITICAL: Container Seal Compromised"; msg = `Optical intrusion (${lux.toFixed(2)} lx) indicates storage container has been opened.`; }
       return { score: Math.round((tempScore * 0.7) + (lightScore * 0.3)), lightScore, tempScore, status, severity, message: msg };
     }
 
     function evaluateDataCentre(lux, temp, prof) {
-      let tempScore = 100;
-      let lightScore = 100;
-      let severity = "optimal";
-      let status = "ASHRAE Envelope Compliant";
-      let msg = "Aisles dark and cold-aisle thermal gradient optimal.";
-
-      if (temp > prof.temp.max) {
-        tempScore = 40;
-        severity = "hazard";
-        status = "Rack Hot-Spot Detected";
-        msg = `Exhaust temperature (${temp.toFixed(1)}°C) breaches ASHRAE high threshold (${prof.temp.max}°C).`;
-      }
-      if (lux > prof.lux.max) {
-        lightScore = 60;
-        if (severity !== 'hazard') severity = 'warning';
-        status = "Cabinet Door Open / Tech Present";
-        msg = `Illuminance jumped to ${lux.toFixed(0)} lx. Physical rack door opened.`;
-      }
+      let tempScore = 100, lightScore = 100, severity = "optimal", status = "ASHRAE Envelope Compliant", msg = "Aisles dark and cold-aisle thermal gradient optimal.";
+      if (temp > prof.temp.max) { tempScore = 40; severity = "hazard"; status = "Rack Hot-Spot Detected"; msg = `Exhaust temperature (${temp.toFixed(1)}°C) breaches ASHRAE high threshold (${prof.temp.max}°C).`; }
+      if (lux > prof.lux.max) { lightScore = 60; if (severity !== 'hazard') severity = 'warning'; status = "Cabinet Door Open / Tech Present"; msg = `Illuminance jumped to ${lux.toFixed(0)} lx. Physical rack door opened.`; }
       return { score: Math.round((tempScore * 0.6) + (lightScore * 0.4)), lightScore, tempScore, status, severity, message: msg };
     }
 
     function evaluateWarehouse(lux, temp, prof) {
-      let tempScore = 100;
-      let lightScore = 100;
-      let severity = "optimal";
-      let status = "Storage Specification Preserved";
-      let msg = "Warehouse climate envelope and UV isolation within bounds.";
-
-      if (temp < prof.temp.min || temp > prof.temp.max) {
-        tempScore = 50;
-        severity = "warning";
-        status = "Thermal Preservation Drift";
-        msg = `Ambient temperature (${temp.toFixed(1)}°C) outside warehouse standard.`;
-      }
-      if (lux > prof.lux.max) {
-        lightScore = 40;
-        if (severity !== 'hazard') severity = 'warning';
-        status = "Light Exposure Warning";
-        msg = `Illuminance (${lux.toFixed(0)} lx) exceeds photolysis threshold (<${prof.lux.max} lx).`;
-      }
+      let tempScore = 100, lightScore = 100, severity = "optimal", status = "Storage Specification Preserved", msg = "Warehouse climate envelope and UV isolation within bounds.";
+      if (temp < prof.temp.min || temp > prof.temp.max) { tempScore = 50; severity = "warning"; status = "Thermal Preservation Drift"; msg = `Ambient temperature (${temp.toFixed(1)}°C) outside warehouse standard.`; }
+      if (lux > prof.lux.max) { lightScore = 40; if (severity !== 'hazard') severity = 'warning'; status = "Light Exposure Warning"; msg = `Illuminance (${lux.toFixed(0)} lx) exceeds photolysis threshold (<${prof.lux.max} lx).`; }
       return { score: Math.round((tempScore + lightScore) / 2), lightScore, tempScore, status, severity, message: msg };
     }
 
@@ -1456,7 +1090,6 @@
       document.getElementById('metricRssiVal').textContent = currentTelemetry.rssi || "-62";
 
       const evaluation = prof.evaluator(lux, temp, prof);
-
       const banner = document.getElementById('statusAlertBanner');
       const sevBadge = document.getElementById('statusSeverityBadge');
       const msgElem = document.getElementById('statusMessage');
@@ -1478,29 +1111,17 @@
       const luxBadge = document.getElementById('luxBadge');
       const luxStatus = document.getElementById('luxComplianceStatus');
       if (lux >= prof.lux.min && lux <= prof.lux.max) {
-        luxBadge.textContent = "Optimal";
-        luxBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        luxStatus.textContent = "Compliant";
-        luxStatus.className = "font-mono text-emerald-400";
+        luxBadge.textContent = "Optimal"; luxBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"; luxStatus.textContent = "Compliant"; luxStatus.className = "font-mono text-emerald-400";
       } else {
-        luxBadge.textContent = lux > prof.lux.max ? "Over Limit" : "Under Limit";
-        luxBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30";
-        luxStatus.textContent = "Breach";
-        luxStatus.className = "font-mono text-amber-400";
+        luxBadge.textContent = lux > prof.lux.max ? "Over Limit" : "Under Limit"; luxBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30"; luxStatus.textContent = "Breach"; luxStatus.className = "font-mono text-amber-400";
       }
 
       const tempBadge = document.getElementById('tempBadge');
       const tempStatus = document.getElementById('tempComplianceStatus');
       if (temp >= prof.temp.min && temp <= prof.temp.max) {
-        tempBadge.textContent = "In Zone";
-        tempBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        tempStatus.textContent = "Nominal";
-        tempStatus.className = "font-mono text-emerald-400";
+        tempBadge.textContent = "In Zone"; tempBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"; tempStatus.textContent = "Nominal"; tempStatus.className = "font-mono text-emerald-400";
       } else {
-        tempBadge.textContent = temp > prof.temp.max ? "Excursion High" : "Excursion Low";
-        tempBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-rose-500/20 text-rose-400 border border-rose-500/30";
-        tempStatus.textContent = "Out of Range";
-        tempStatus.className = "font-mono text-rose-400";
+        tempBadge.textContent = temp > prof.temp.max ? "Excursion High" : "Excursion Low"; tempBadge.className = "px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-rose-500/20 text-rose-400 border border-rose-500/30"; tempStatus.textContent = "Out of Range"; tempStatus.className = "font-mono text-rose-400";
       }
 
       const arc = document.getElementById('scoreGaugeArc');
@@ -1510,16 +1131,9 @@
       scoreSmall.textContent = `${evaluation.score}%`;
       arc.setAttribute('stroke-dasharray', `${evaluation.score}, 100`);
 
-      if (evaluation.score >= 85) {
-        arc.setAttribute('class', 'text-emerald-500 transition-all duration-500 ease-out');
-        scoreRating.textContent = "Optimal Compliance";
-      } else if (evaluation.score >= 60) {
-        arc.setAttribute('class', 'text-amber-500 transition-all duration-500 ease-out');
-        scoreRating.textContent = "Moderate Stability";
-      } else {
-        arc.setAttribute('class', 'text-rose-500 transition-all duration-500 ease-out');
-        scoreRating.textContent = "Circadian Disruption";
-      }
+      if (evaluation.score >= 85) { arc.setAttribute('class', 'text-emerald-500 transition-all duration-500 ease-out'); scoreRating.textContent = "Optimal Compliance"; }
+      else if (evaluation.score >= 60) { arc.setAttribute('class', 'text-amber-500 transition-all duration-500 ease-out'); scoreRating.textContent = "Moderate Stability"; }
+      else { arc.setAttribute('class', 'text-rose-500 transition-all duration-500 ease-out'); scoreRating.textContent = "Circadian Disruption"; }
 
       document.getElementById('scoreLightPart').textContent = `${evaluation.lightScore}%`;
       document.getElementById('scoreTempPart').textContent = `${evaluation.tempScore}%`;
@@ -1538,11 +1152,7 @@
 
       ['sleep', 'greenhouse', 'pharma', 'datacentre', 'warehouse'].forEach(p => {
         const btn = document.getElementById(`pill-${p}`);
-        if (p === profileKey) {
-          btn.className = "profile-pill px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border flex items-center space-x-1.5 bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm";
-        } else {
-          btn.className = "profile-pill px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center space-x-1.5";
-        }
+        btn.className = p === profileKey ? "profile-pill px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border flex items-center space-x-1.5 bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm" : "profile-pill px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 flex items-center space-x-1.5";
       });
 
       const luxTargetStr = prof.lux.min > 0 ? `${prof.lux.min.toLocaleString()} - ${prof.lux.max.toLocaleString()} lx` : `< ${prof.lux.max} lx`;
@@ -1552,62 +1162,6 @@
       document.getElementById('chartThresholdGuide').textContent = `Guide: Lux Envelope ${luxTargetStr} | Temp ${prof.temp.min.toFixed(1)} - ${prof.temp.max.toFixed(1)} °C`;
 
       updateUI();
-    }
-
-  // ==================== MANUAL BENCHTOP INJECTION ====================
-    function manualPerturbLux(val) {
-      const lux = parseFloat(val);
-      document.getElementById('sliderLuxValDisplay').textContent = `${lux >= 100 ? lux.toFixed(0) : lux.toFixed(2)} lx`;
-      handleNewIncomingSample({
-        ...currentTelemetry,
-        lux: lux
-      });
-      pushStateToCloud(lux, currentTelemetry.temp); // <--- ADD THIS LINE
-    }
-
-    function manualPerturbTemp(val) {
-      const temp = parseFloat(val);
-      document.getElementById('sliderTempValDisplay').textContent = `${temp.toFixed(1)} °C`;
-      handleNewIncomingSample({
-        ...currentTelemetry,
-        temp: temp
-      });
-      pushStateToCloud(currentTelemetry.lux, temp); // <--- ADD THIS LINE
-    }
-
-    function injectPreset(lux, temp, eventLabel) {
-      document.getElementById('simLuxSlider').value = lux;
-      document.getElementById('simTempSlider').value = temp;
-      document.getElementById('sliderLuxValDisplay').textContent = `${lux >= 100 ? lux.toFixed(0) : lux.toFixed(2)} lx`;
-      document.getElementById('sliderTempValDisplay').textContent = `${temp.toFixed(1)} °C`;
-      
-      handleNewIncomingSample({
-        ...currentTelemetry,
-        lux: lux,
-        temp: temp
-      });
-      pushStateToCloud(lux, temp); // <--- ADD THIS LINE
-    }
-
-    // ==================== INGEST MODE SWITCHER ====================
-    function setIngestMode(mode) {
-      ingestMode = mode;
-      const btnLive = document.getElementById('btnModeLive');
-      const btnSim = document.getElementById('btnModeSim');
-      const statusLabel = document.getElementById('statusLabel');
-
-      if (mode === 'live') {
-        btnLive.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all bg-sky-500/20 text-sky-400 border border-sky-500/30";
-        btnSim.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-400 hover:text-slate-200";
-        statusLabel.textContent = "ESP32 Live (15s)";
-      } else {
-        btnSim.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        btnLive.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-400 hover:text-slate-200";
-        statusLabel.textContent = "Online (15s)";
-      }
-
-      secondsUntilNextSample = SAMPLE_CADENCE_S;
-      updateCountdownVisuals();
     }
 
     // ==================== CSV EXPORT ====================
@@ -1626,47 +1180,12 @@
       document.body.removeChild(link);
     }
 
-    function saveGatewayConfig() {
-      gatewayConfig.host = document.getElementById('cfgGatewayHost').value;
-      
-      // Read the user-entered interval (in ms) or fallback to 15000
-      const pollMs = parseInt(document.getElementById('cfgPollInterval').value) || 15000;
-      gatewayConfig.pollInterval = pollMs;
-      gatewayConfig.wsPath = document.getElementById('cfgWsPath').value;
-
-      // Convert ms to seconds for the countdown engine
-      activePollIntervalSec = Math.max(1, parseInt(document.getElementById('cfgPollInterval').value, 10) || 15);
-secondsUntilNextSample = activePollIntervalSec;
-      gatewayConfig.pollInterval = activePollIntervalSec * 1000;
-
-
-      // Update the countdown and status badges immediately
-      const cadenceDisplay = document.getElementById('cadenceTimerDisplay');
-      if (cadenceDisplay) {
-        cadenceDisplay.textContent = `${secondsUntilNextSample}s`;
-      }
-
-      const statusLbl = document.getElementById('statusLabel');
-      if (statusLbl && !isMasterController) {
-        statusLbl.textContent = `Live Telemetry (${activePollIntervalSec}s)`;
-      }
-
-      // Restart the 1-second cadence countdown with the new interval
-      start15sCadenceEngine();
-
-      // Trigger an immediate tick so the user sees the update right away
-      executeSampleTick();
-
-      closeModal('gatewaySettingsModal');
-    }
-
     function loadProfileThresholdsToModal(profileKey) {
       const prof = PROFILES[profileKey];
       if (!prof) return;
       document.getElementById('inputTempMin').value = prof.temp.min;
       document.getElementById('inputTempIdeal').value = prof.temp.ideal;
       document.getElementById('inputTempMax').value = prof.temp.max;
-
       document.getElementById('inputLuxMin').value = prof.lux.min;
       document.getElementById('inputLuxIdeal').value = prof.lux.ideal;
       document.getElementById('inputLuxMax').value = prof.lux.max;
@@ -1680,7 +1199,6 @@ secondsUntilNextSample = activePollIntervalSec;
       prof.temp.min = parseFloat(document.getElementById('inputTempMin').value);
       prof.temp.ideal = parseFloat(document.getElementById('inputTempIdeal').value);
       prof.temp.max = parseFloat(document.getElementById('inputTempMax').value);
-
       prof.lux.min = parseFloat(document.getElementById('inputLuxMin').value);
       prof.lux.ideal = parseFloat(document.getElementById('inputLuxIdeal').value);
       prof.lux.max = parseFloat(document.getElementById('inputLuxMax').value);
@@ -1698,42 +1216,37 @@ secondsUntilNextSample = activePollIntervalSec;
       }
     }
   
-  // ==================== STARTUP ====================
-    
+    // ==================== STARTUP SEQUENCE ====================
     lucide.createIcons();
-      seedUnified15sStore();
-      initChart();
-      switchProfile('sleep');
+    
+    // Fill with empty mock data so UI exists instantly while Sheets API resolves
+    seedUnified15sStore(); 
+    initChart();
+    switchProfile('sleep');
 
-      // 1. Start the countdown cadence engine
-      start15sCadenceEngine();
+    // Start UI countdown
+    start15sCadenceEngine();
 
-      // 2. Fire an immediate sample tick on boot (draws live point right away)
-      executeSampleTick();
+    // Immediately fetch the massive historical archive from Google Sheets
+    syncHistoricalFromSheets();
 
-      // ==================== VIEWER VISIBILITY GUARD ====================
-      setTimeout(() => {
-        if (!isMasterController) {
-          const controls = document.getElementById('benchtopControlsPanel');
-          if (controls) {
-            controls.classList.add('hidden');
-          }
-          const statusLbl = document.getElementById('statusLabel');
-          if (statusLbl) {
-            statusLbl.textContent = `Live Telemetry (${activePollIntervalSec || 15}s)`;
-          }
-          if (typeof telemetryChart !== 'undefined' && telemetryChart) {
-            telemetryChart.resize();
-            refreshChartData();
-          }
-        } else {
-          const statusLbl = document.getElementById('statusLabel');
-          if (statusLbl) {
-            statusLbl.textContent = "Presenter Mode (Master)";
-          }
+    // Fire the first live sample tick
+    executeSampleTick();
+
+    setTimeout(() => {
+      if (!isMasterController) {
+        const statusLbl = document.getElementById('statusLabel');
+        if (statusLbl) statusLbl.textContent = `Live Telemetry (${activePollIntervalSec || 15}s)`;
+        if (typeof telemetryChart !== 'undefined' && telemetryChart) {
+          telemetryChart.resize();
+          refreshChartData();
         }
-      }, 50);
-//================================================================
+      } else {
+        const statusLbl = document.getElementById('statusLabel');
+        if (statusLbl) statusLbl.textContent = "Presenter Mode (Master)";
+      }
+    }, 50);
+
   </script>
 </body>
 </html>
